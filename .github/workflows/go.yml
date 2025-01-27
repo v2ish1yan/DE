@@ -12,6 +12,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 允许写入仓库内容（创建Release）
     steps:
     - uses: actions/checkout@v4
 
