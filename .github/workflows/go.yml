@@ -6,6 +6,8 @@ name: Go build
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - 'v*'
 
 jobs:
   build:
@@ -25,6 +27,19 @@ jobs:
           GOOS=darwin GOARCH=amd64 go build -o dist/DE-darwin-amd64 ./main.go # 编译 macOS 64 位版本
           GOOS=windows GOARCH=amd64 go build -o dist/DE-windows-amd64.exe ./main.go # 编译 Windows 64 位版本
 
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 使用 GitHub 提供的 token
+      with:
+        tag_name: ${{ github.ref }} # 使用触发工作流的标签
+        release_name: Release ${{ github.ref_name }} # Release 名称
+        draft: false # 是否创建为草稿
+        prerelease: false # 是否为预发布版本
+        body: | # Release 描述
+          This is an automated release created by GitHub Actions.
+          
     - name: Upload Release Assets
       uses: actions/upload-release-asset@v1
       with:
