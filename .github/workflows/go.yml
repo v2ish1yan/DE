@@ -27,11 +27,24 @@ jobs:
           GOOS=darwin GOARCH=amd64 go build -o dist/DE-darwin-amd64 ./main.go # 编译 macOS 64 位版本
           GOOS=windows GOARCH=amd64 go build -o dist/DE-windows-amd64.exe ./main.go # 编译 Windows 64 位版本
 
-          
-    - name: Upload Release Assets
-      uses: actions/upload-release-asset@v1
+
+    - name: Create Release
+      id: create_release  # 设置id以便后续引用
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 必须提供token
       with:
-        upload_url: ${{ github.event.release.upload_url }} # 从触发事件中获取上传 URL
+        tag_name: ${{ github.ref }}  # 使用触发工作流的tag
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+          
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
         asset_path: dist/DE-linux-amd64
         asset_name: DE-linux-amd64
         asset_content_type: application/octet-stream
