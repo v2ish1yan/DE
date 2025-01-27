@@ -9,10 +9,7 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
 
@@ -23,34 +20,31 @@ jobs:
 
     - name: Build
       run: |
-        if [[ "${{ runner.os }}" == "Windows" ]]; then
-          go build -v  -o DE.exe ./main.go
-        elif [[ "${{ runner.os }}" == "macOS" ]]; then
-          go build -v  -o DE_macos ./main.go
-        else
-          go build -v  -o DE_linux ./main.go
-        fi
+          mkdir -p dist
+          go build -o dist/DE-linux-amd64 ./main.go # 编译 Linux 64 位版本
+          GOOS=darwin GOARCH=amd64 go build -o dist/DE-darwin-amd64 ./main.go # 编译 macOS 64 位版本
+          GOOS=windows GOARCH=amd64 go build -o dist/DE-windows-amd64.exe ./main.go # 编译 Windows 64 位版本
+
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ github.event.release.upload_url }} # 从触发事件中获取上传 URL
+        asset_path: dist/DE-linux-amd64
+        asset_name: DE-linux-amd64
+        asset_content_type: application/octet-stream
 
     - name: Upload Release Assets (macOS)
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: DE_macos.exe
-        asset_name: DE_macos.exe
+        asset_path: dist/DE-darwin-amd64
+        asset_name: DE-darwin-amd64
         asset_content_type: application/octet-stream
 
     - name: Upload Release Assets (Windows)
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: DE.exe
-        asset_name: DE.exe
-        asset_content_type: application/octet-stream
-
-    - name: Upload Release Assets
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ github.event.release.upload_url }} 
-        asset_path: DE_linux
-        asset_name: DE_linux
+        asset_path: dist/DE-windows-amd64.exe
+        asset_name: DE-windows-amd64.exe
         asset_content_type: application/octet-stream
